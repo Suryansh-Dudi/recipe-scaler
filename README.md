@@ -3,6 +3,8 @@
 A simple, responsive web application that helps you adjust ingredient quantities based on the number of servings you want to prepare.
 
 🔗 **Live Demo:** [Recipe Scaler](https://suryansh-dudi.github.io/recipe-scaler/)
+<img width="1906" height="750" alt="image" src="https://github.com/user-attachments/assets/4f3fc247-ca6e-4c2d-9bd3-cda5db3e5adc" />
+
 
 ## 📌 About the Project
 
