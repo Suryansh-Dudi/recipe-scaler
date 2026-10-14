@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recipe Scaler - Dynamic Portion & Ingredient Calculator</title>
+  <meta name="description" content="A responsive, client-side recipe scaling tool for home cooks to dynamically rescale ingredient proportions based on target servings, with light and dark mode support and local persistence." />
+  <meta property="og:title" content="Recipe Scaler - Dynamic Portion & Ingredient Calculator" />
+  <meta property="og:description" content="A responsive, client-side recipe scaling tool for home cooks to dynamically rescale ingredient proportions based on target servings, with light and dark mode support and local persistence." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="navbar-inner">
+      <!-- Zone 1: Wordmark / Brand with New Bespoke Recipe Scaler Symbol -->
+      <a href="#" class="nav-brand" aria-label="Recipe Scaler Home">
+        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <!-- Artisanal Chef Hat with Balance Level -->
+          <path d="M4 11a3.5 3.5 0 0 1 2-3.15 4 4 0 0 1 7-1.7 4 4 0 0 1 7 1.7A3.5 3.5 0 0 1 20 11c0 1.5-1 2.8-2.4 3.3L17 18H7l-.6-3.7A3.5 3.5 0 0 1 4 11z"></path>
+          <path d="M8 18v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2"></path>
+          <line x1="9" y1="14" x2="15" y2="14"></line>
+          <circle cx="12" cy="10" r="1.5" fill="currentColor"></circle>
+        </svg>
+        <span>Recipe Scaler</span>
+      </a>
+
+      <!-- Zone 3: Actions (Theme Toggle Switch) -->
+      <div class="nav-actions">
+        <button id="themeToggle" class="theme-toggle-btn" type="button" role="switch" aria-checked="false" aria-label="Toggle color theme">
+          <span id="themeIcon" class="theme-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+          </span>
+          <span id="themeLabel">Light Mode</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main id="main-content" class="main-wrapper">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <h1 class="hero-title">Precision Recipe Scaler</h1>
+      <p class="hero-subtitle">
+        Adjust serving sizes seamlessly. Perfect proportions recalculated in real time for any crowd.
+      </p>
+
+      <!-- Quick Recipe Presets -->
+      <div class="presets-bar" aria-label="Preset Sample Recipes">
+        <span class="presets-label">Quick Presets:</span>
+        <button type="button" class="preset-chip" data-preset="pancakes">Pancakes (4 → 8)</button>
+        <button type="button" class="preset-chip" data-preset="cookies">Cookies (12 → 24)</button>
+        <button type="button" class="preset-chip" data-preset="doughnuts">Doughnuts (6 → 12)</button>
+        <button type="button" class="preset-chip" data-preset="carbonara">Carbonara (2 → 6)</button>
+        <button type="button" class="preset-chip" data-preset="crepes">Crepes (4 → 8)</button>
+        <button type="button" class="preset-chip" data-preset="cinnamonrolls">Cinnamon Rolls (8 → 16)</button>
+      </div>
+    </section>
+
+    <!-- Error Banner -->
+    <div id="errorMessageBanner" class="alert-banner alert-danger hidden" role="alert" aria-live="assertive">
+      <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <div class="alert-content">
+        <strong>Scaling Calculation Error</strong>
+        <span id="errorText">Invalid servings input.</span>
+      </div>
+    </div>
+
+    <!-- Two-Column Interactive Workspace -->
+    <section id="workspace" class="workspace-grid">
+      <!-- Left Column: Input Form Card -->
+      <div class="card recipe-input-card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+              <span>Recipe Details</span>
+            </h2>
+            <p class="card-subtitle">Enter dish name, base servings, and target servings</p>
+          </div>
+        </div>
+
+        <form id="recipeForm" onsubmit="return false;" novalidate>
+          <!-- Dish Name Input -->
+          <div class="form-group">
+            <label class="form-label" for="dishName">
+              Dish Name
+              <span class="form-hint">(e.g., Homemade Cinnamon Buns)</span>
+            </label>
+            <input
+              type="text"
+              id="dishName"
+              class="input-text"
+              placeholder="e.g. Buttermilk Pancakes"
+              autocomplete="off"
+            />
+          </div>
+
+          <!-- Servings Configuration Split Row -->
+          <div class="form-group">
+            <div class="servings-grid">
+              <div class="servings-card">
+                <label class="form-label" for="originalServings">
+                  Recipe Makes (Servings)
+                  <span class="form-hint">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="originalServings"
+                  class="input-number"
+                  min="0"
+                  step="any"
+                  placeholder="e.g. 4"
+                  onkeydown="if(['e','E','-','+'].includes(event.key)) event.preventDefault();"
+                  oninput="this.value = this.value.replace(/[-eE+]/g, ''); if(parseFloat(this.value) < 0) this.value = '';"
+                  required
+                />
+              </div>
+
+              <div class="servings-card">
+                <label class="form-label" for="targetServings">
+                  Servings Wanted
+                  <span class="form-hint">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="targetServings"
+                  class="input-number"
+                  min="0"
+                  step="any"
+                  placeholder="e.g. 8"
+                  onkeydown="if(['e','E','-','+'].includes(event.key)) event.preventDefault();"
+                  oninput="this.value = this.value.replace(/[-eE+]/g, ''); if(parseFloat(this.value) < 0) this.value = '';"
+                  required
+                />
+                <span id="scaleMultiplierBadge" class="scale-ratio-badge hidden">Scale: 2×</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Three Core Ingredients Section -->
+          <div class="ingredients-section">
+            <div class="section-legend">
+              <span class="section-legend-title">Recipe Ingredients (3 Items)</span>
+              <span class="section-legend-count">Required</span>
+            </div>
+
+            <!-- Ingredient 1 -->
+            <div class="ingredient-row">
+              <div class="ingredient-header">
+                <span class="ingredient-index">Ingredient 1</span>
+              </div>
+              <div class="ingredient-fields">
+                <div>
+                  <input
+                    type="text"
+                    id="ing1_name"
+                    class="input-text"
+                    placeholder="Name (e.g. All-Purpose Flour)"
+                  />
+                </div>
+                <div>
+                  <input
+                    type="number"
+                    id="ing1_amount"
+                    class="input-number"
+                    min="0"
+                    step="any"
+                    placeholder="Amount (e.g. 200)"
+                    onkeydown="if(['e','E','-','+'].includes(event.key)) event.preventDefault();"
+                    oninput="this.value = this.value.replace(/[-eE+]/g, ''); if(parseFloat(this.value) < 0) this.value = '';"
+                  />
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    id="ing1_unit"
+                    class="input-text"
+                    placeholder="Unit (e.g. g, cups)"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Ingredient 2 -->
+            <div class="ingredient-row">
+              <div class="ingredient-header">
+                <span class="ingredient-index">Ingredient 2</span>
+              </div>
+              <div class="ingredient-fields">
+                <div>
+                  <input
+                    type="text"
+                    id="ing2_name"
+                    class="input-text"
+                    placeholder="Name (e.g. Whole Milk)"
+                  />
+                </div>
+                <div>
+                  <input
+                    type="number"
+                    id="ing2_amount"
+                    class="input-number"
+                    min="0"
+                    step="any"
+                    placeholder="Amount (e.g. 300)"
+                    onkeydown="if(['e','E','-','+'].includes(event.key)) event.preventDefault();"
+                    oninput="this.value = this.value.replace(/[-eE+]/g, ''); if(parseFloat(this.value) < 0) this.value = '';"
+                  />
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    id="ing2_unit"
+                    class="input-text"
+                    placeholder="Unit (e.g. ml, cups)"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Ingredient 3 -->
+            <div class="ingredient-row">
+              <div class="ingredient-header">
+                <span class="ingredient-index">Ingredient 3</span>
+              </div>
+              <div class="ingredient-fields">
+                <div>
+                  <input
+                    type="text"
+                    id="ing3_name"
+                    class="input-text"
+                    placeholder="Name (e.g. Granulated Sugar)"
+                  />
+                </div>
+                <div>
+                  <input
+                    type="number"
+                    id="ing3_amount"
+                    class="input-number"
+                    min="0"
+                    step="any"
+                    placeholder="Amount (e.g. 50)"
+                    onkeydown="if(['e','E','-','+'].includes(event.key)) event.preventDefault();"
+                    oninput="this.value = this.value.replace(/[-eE+]/g, ''); if(parseFloat(this.value) < 0) this.value = '';"
+                  />
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    id="ing3_unit"
+                    class="input-text"
+                    placeholder="Unit (e.g. g, tbsp)"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Action Buttons -->
+          <div class="form-actions">
+            <button type="button" id="scaleButton" class="btn btn-primary">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                <polyline points="17 6 23 6 23 12"></polyline>
+              </svg>
+              <span>Scale Recipe</span>
+            </button>
+            <button type="button" id="resetButton" class="btn btn-secondary" title="Clear inputs and reset">
+              <span>Reset</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Right Column: Scaled Results Card -->
+      <div id="resultsCard" class="card results-card" aria-live="polite">
+        <!-- Empty State -->
+        <div id="emptyResultsState" class="empty-state">
+          <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"></path>
+            <line x1="6" y1="17" x2="18" y2="17"></line>
+          </svg>
+          <h3 class="empty-state-title">Ready to Scale</h3>
+          <p class="empty-state-desc">
+            Provide the original servings and the servings you want, then click <strong>Scale Recipe</strong>.
+          </p>
+        </div>
+
+        <!-- Active Results State -->
+        <div id="activeResultsState" class="hidden">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <span>Scaled Recipe</span>
+              </h2>
+              <p class="card-subtitle">Exact recalculated proportions</p>
+            </div>
+            <span id="resultScaleBadge" class="scale-badge">2× Multiplier</span>
+          </div>
+
+          <!-- Recipe Overview Header Box -->
+          <div class="results-header-box">
+            <h3 id="resultDishTitle" class="dish-display-name">Custom Recipe</h3>
+            <div class="scale-meta-row">
+              <span id="resultScaleMeta">Rescaled from 4 to 8 servings</span>
+              <span aria-hidden="true">·</span>
+              <span>Formula: Original × (Wanted ÷ Makes)</span>
+            </div>
+          </div>
+
+          <!-- Scaled Ingredients Container -->
+          <div id="resultsContainer" class="results-list"></div>
+
+          <!-- Actions Bar for Results -->
+          <div class="results-actions">
+            <button type="button" id="copyRecipeBtn" class="btn btn-outline" title="Copy scaled recipe to clipboard">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span>Copy Recipe</span>
+            </button>
+            <span id="copyToast" class="toast-notice">Copied to clipboard!</span>
+          </div>
+
+          <!-- Kitchen Scaling Tips -->
+          <div class="kitchen-notes-box">
+            <div class="kitchen-notes-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              <span>Chef's Scaling Tip</span>
+            </div>
+            <p>
+              Direct scaling works with 1:1 proportionality for dry and wet staples. When multiplying baking recipes by more than 3×, increase baking powder, leaveners, and salt by only 1.5× to 2× to prevent over-seasoning.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recipe History Section -->
+    <section id="recipeHistory" class="history-section card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span>Recipe History</span>
+          </h2>
+          <p class="card-subtitle">Saved scaled recipes for quick reloading and reference</p>
+        </div>
+        <div class="history-header-actions">
+          <span id="historyCountBadge" class="history-count-badge hidden">0 saved</span>
+          <button type="button" id="clearAllHistoryBtn" class="btn btn-outline btn-clear-all hidden" title="Clear all saved recipe history">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            <span>Clear All History</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- History List -->
+      <div id="historyListContainer" class="history-list"></div>
+
+      <!-- History Empty State -->
+      <div id="historyEmptyState" class="history-empty">
+        <p>No recipes in history yet. When you scale a recipe, it will be automatically saved here.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Clean Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>Recipe Scaler &middot; Client-Side Portion Calculator</span>
+      <span>100% Client-Side &middot; Offline Ready &middot; Persistent LocalStorage</span>
+    </div>
+  </footer>
+
+  <!-- Vanilla JavaScript Controller -->
+  <script src="script.js"></script>
+</body>
+</html>
