@@ -20,8 +20,8 @@ Enter the original number of servings, your desired servings, and the ingredient
 
 ## 🛠️ Built With
 
-- HTML5
-- CSS3
+- HTML
+- CSS
 - JavaScript
 
 ## 🚀 How to Use
